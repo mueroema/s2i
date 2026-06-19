@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "---> Installiere socat..."
-microdnf install -y socat
-microdnf clean all
+echo "Hier bist Du dann schon User 1001"
+id
 
 echo "---> Erstelle index.html..."
 # Wir legen sie nach /tmp, da dieses Verzeichnis oft beschreibbar ist
