@@ -16,10 +16,11 @@ fi
 # HINWEIS: Da dies im ASSEMBLE-Skript läuft, wird die Uhrzeit JETZT beim Bauen eingefroren.
 BUILD_DATE=$(date "+%Y-%m-%d %H:%M:%S %Z")
 
-echo "---> Generiere index.html mit Zeitstempel..."
 
-# 3. Die index.html direkt im Apache-Verzeichnis erstellen
-cat <<EOF > index.html
+# Wir schreiben die index.html direkt in das offizielle Apache-Webroot!
+echo "---> Generiere index.html im Apache-Webroot (/var/www/html/)..."
+
+cat <<EOF > /var/www/html/index.html
 <!DOCTYPE html>
 <html lang="de">
 <head>
