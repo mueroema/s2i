@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+echo "---> Installiere socat..."
+microdnf install -y socat
+microdnf clean all
+
+echo "---> Erstelle index.html..."
+# Wir legen sie nach /tmp, da dieses Verzeichnis oft beschreibbar ist
+echo "<html><body><h1>S2I Minimal Hack erfolgreich!</h1></body></html>" > /tmp/index.html
