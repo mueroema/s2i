@@ -1,5 +1,0 @@
-#!/bin/bash
-echo "---> Starte socat Webserver auf Port 8080..."
-
-# Ein simpler Einzeiler-Webserver mit socat
-exec socat TCP-LISTEN:8080,reuseaddr,fork SYSTEM:"echo -e 'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n'; cat /tmp/index.html"
