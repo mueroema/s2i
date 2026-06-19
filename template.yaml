@@ -1,17 +1,25 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: apache-s2i-template
-message: "Die Anwendung ${APP_NAME} wurde erfolgreich aus dem Template erstellt."
+  name: apache-complete-template
+message: "Die Anwendung ${APP_NAME} wurde mit ${REPLICAS} Replicas und einer Edge-Route erstellt."
 objects:
+
+# 1. IMAGE STREAM (Für das fertige Anwendungs-Image)
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: ${APP_NAME}
+    labels:
+      app: ${APP_NAME}
+
+# 2. BUILD CONFIG (S2I-Pipeline)
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     name: ${APP_NAME}
+    labels:
+      app: ${APP_NAME}
   spec:
     source:
       type: Git
@@ -27,12 +35,80 @@ objects:
       to:
         kind: ImageStreamTag
         name: ${APP_NAME}:latest
+
+# 3. DEPLOYMENT (Die eigentlichen Pods)
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      app: ${APP_NAME}
+    annotations:
+      # Dieser Trigger sorgt dafür, dass das Deployment automatisch neu startet,
+      # sobald der S2I-Build ein neues Image in den ImageStream pusht!
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"${APP_NAME}:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"webserver\")].image"}]'
+  spec:
+    replicas: ${{REPLICAS}}
+    selector:
+      matchLabels:
+        app: ${APP_NAME}
+    template:
+      metadata:
+        labels:
+          app: ${APP_NAME}
+      spec:
+        containers:
+        - name: webserver
+          image: ${APP_NAME}:latest
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+
+# 4. SERVICE (Der interne LoadBalancer)
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      app: ${APP_NAME}
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: ${APP_NAME}
+
+# 5. EDGE ROUTE (Die externe TLS-Schnittstelle)
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ${APP_NAME}
+    labels:
+      app: ${APP_NAME}
+  spec:
+    to:
+      kind: Service
+      name: ${APP_NAME}
+    port:
+      targetPort: 8080-tcp
+    tls:
+      termination: edge
+
+# PARAMETER-SEKTION
 parameters:
 - name: APP_NAME
-  description: "Der Name der Anwendung"
-  value: "mein-s2i-webserver"
+  description: "Der Name der Anwendung und aller verknüpften Ressourcen."
+  value: "apache-template-usage"
   required: true
+
 - name: GIT_REPO_URL
-  description: "Die URL zum Git-Repository mit den S2I-Skripten"
+  description: "Die URL zum Git-Repository mit den S2I-Skripten."
   value: "https://github.com/mueroema/s2i"
+  required: true
+
+- name: REPLICAS
+  description: "Die Anzahl der gewünschten Pods im Deployment."
+  value: "2"
   required: true
