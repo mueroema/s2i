@@ -1,9 +1,63 @@
 #!/bin/bash
+# 'set -e' sorgt dafür, dass der Build sofort abbricht, falls ein Befehl fehlschlägt
 set -e
 
-echo "Hier bist Du dann schon User 1001"
-id
+echo "---> S2I Custom Assemble-Skript gestartet..."
 
-echo "---> Erstelle index.html..."
-# Wir legen sie nach /tmp, da dieses Verzeichnis oft beschreibbar ist
-echo "<html><body><h1>S2I Minimal Hack erfolgreich!</h1></body></html>" > /tmp/index.html
+# 1. Optionale Dateien aus dem Git-Repo in das Apache-Verzeichnis kopieren
+# OpenShift legt den Git-Inhalt während des Builds standardmäßig nach /tmp/src
+if [ -d /tmp/src ] && [ "$(ls -A /tmp/src)" ]; then
+    echo "---> Kopiere vorhandene Quelldateien nach /opt/app-root/src..."
+    # Wir kopieren alles in das aktuelle Arbeitsverzeichnis (WorkingDir von httpd ist /opt/app-root/src)
+    cp -Rf /tmp/src/. ./
+fi
+
+# 2. Dynamischen Zeitstempel für die Build-Zeit erzeugen
+# HINWEIS: Da dies im ASSEMBLE-Skript läuft, wird die Uhrzeit JETZT beim Bauen eingefroren.
+BUILD_DATE=$(date "+%Y-%m-%d %H:%M:%S %Z")
+
+echo "---> Generiere index.html mit Zeitstempel..."
+
+# 3. Die index.html direkt im Apache-Verzeichnis erstellen
+cat <<EOF > index.html
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>EX288 S2I Lab Erfolgreich</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f3;
+            color: #333;
+            text-align: center;
+            padding-top: 100px;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            display: inline-block;
+            max-width: 500px;
+            border-top: 8px solid #cc0000;
+        }
+        h1 { color: #cc0000; margin-bottom: 10px; }
+        .status { font-weight: bold; color: #2e7d32; }
+        .timestamp { font-family: monospace; background: #f5f5f5; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>S2I Custom Build Erfolgreich! 🚀</h1>
+        <p>Dieses Image basiert auf dem offiziellen Red Hat <strong>UBI 10 Apache</strong> Image.</p>
+        <p class="status">Status: Das eigene .s2i/bin/assemble Skript wurde ausgeführt.</p>
+        <hr>
+        <p><strong>Kompiliert am (Build-Zeit):</strong></p>
+        <div class="timestamp">${BUILD_DATE}</div>
+    </div>
+</body>
+</html>
+EOF
+
+echo "---> S2I Custom Assemble-Skript erfolgreich beendet!"

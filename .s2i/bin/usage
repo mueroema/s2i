@@ -1,0 +1,35 @@
+#!/bin/bash
+set -e
+
+# Ein usage-Skript gibt einfach nur formatierten Text auf der Standardausgabe aus
+cat <<EOF
+=======================================================================
+                 EX288 CUSTOM S2I HTTPD-24 BUILDER
+=======================================================================
+
+Dieses Repository enthält angepasste S2I-Skripte für den Apache 2.4 Webserver
+auf Basis von Red Hat UBI 10.
+
+Verwendung in OpenShift (oc CLI):
+-----------------------------------------------------------------------
+Um eine Anwendung mit diesem S2I-Setup zu erstellen, führe folgenden
+Befehl in deinem Projekt aus:
+
+oc new-app registry.access.redhat.com/ubi10/httpd-24~https://github.com/mueroema/s2i --name=mein-webserver
+
+Was dieses Setup tut:
+-----------------------------------------------------------------------
+1. Das 'assemble'-Skript fängt den Build ab.
+2. Es kopiert eventuell vorhandenen HTML-Code aus dem Git-Repository.
+3. Es generiert automatisch eine 'index.html' mit einem exakten,
+   sekundengenauen Build-Zeitstempel.
+4. Es übergibt das Image an den Standard-Startbefehl (/usr/bin/run-httpd).
+
+Wichtige Container-Pfade:
+-----------------------------------------------------------------------
+* Arbeitsverzeichnis:  /opt/app-root/src
+* S2I-Skripte:         /usr/libexec/s2i
+* Apache-Konfiguration:/opt/app-root/etc/httpd.d
+
+=======================================================================
+EOF
