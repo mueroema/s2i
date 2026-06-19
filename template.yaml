@@ -1,0 +1,38 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: apache-s2i-template
+message: "Die Anwendung ${APP_NAME} wurde erfolgreich aus dem Template erstellt."
+objects:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: ${APP_NAME}
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    name: ${APP_NAME}
+  spec:
+    source:
+      type: Git
+      git:
+        uri: ${GIT_REPO_URL}
+    strategy:
+      type: Source
+      sourceStrategy:
+        from:
+          kind: DockerImage
+          name: registry.access.redhat.com/ubi10/httpd-24:latest
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APP_NAME}:latest
+parameters:
+- name: APP_NAME
+  description: "Der Name der Anwendung"
+  value: "mein-s2i-webserver"
+  required: true
+- name: GIT_REPO_URL
+  description: "Die URL zum Git-Repository mit den S2I-Skripten"
+  value: "https://github.com/mueroema/s2i"
+  required: true
