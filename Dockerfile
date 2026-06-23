@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
 
 # Hier sind wir noch root und DÜRFEN dnf nutzen!
-RUN dnf install -y socat && dnf clean all
+RUN dnf55555 install -y socat && dnf clean all
 
 # Wir bauen deine index.html
 RUN echo "<html><body><h1>S2I-Konzepte verstanden!</h1></body></html>" > /tmp/index.html
