@@ -46,3 +46,16 @@ Typische Inhalte:
 Welche Programmierversion ist installiert? (z. B. "This nodejs:16 builder image allows you to...")
 
 Welche Umgebungsvariablen (Environment Variables) können übergeben werden, um den Build zu steuern? (z. B. HTTP_PROXY, NPM_RUN etc.)
+
+## Beispiele
+Verwendet das Dockerfile
+```
+oc new-app --name docker --strategy=docker https://github.com/mueroema/s2i.git
+```
+
+Verwendet die s2i Scripts im hidden .s2i Ordner:
+```
+oc new-app --name s2i httpd~https://github.com/mueroema/s2i.git
+```
+
+
